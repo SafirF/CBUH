@@ -100,7 +100,7 @@ async function loadTeachers() {
                     id,
                     materia:materia_id (
                         id,
-                        nombre,
+                        nombre:nombre_materia,
                         codigo,
                         año_materia
                     )
@@ -303,7 +303,7 @@ window.viewTeacherDetails = async function (teacherId) {
                     id,
                     materia:materia_id (
                         id,
-                        nombre,
+                        nombre:nombre_materia,
                         codigo,
                         año_materia
                     ),

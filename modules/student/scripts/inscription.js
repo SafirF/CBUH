@@ -70,7 +70,7 @@ async function checkEligibility() {
                 id,
                 estado_id,
                 carga:cargas_academicas!carga_academica_id (
-                    materia:materias!materia_id (año_materia, orden_secuencia, nombre)
+                    materia:materias!materia_id (año_materia, orden_secuencia, nombre:nombre_materia)
                 ),
                 calificaciones (nota_final)
             `)
@@ -107,7 +107,7 @@ async function checkEligibility() {
         let searchYear = lastYear || 1;
         let { data: nextSubjects, error: nextSubError } = await supabase
             .from('materias')
-            .select('*')
+            .select('id, codigo, nombre:nombre_materia, año_materia, orden_secuencia')
             .eq('año_materia', searchYear)
             .gt('orden_secuencia', lastSeq)
             .order('orden_secuencia', { ascending: true })
@@ -117,7 +117,7 @@ async function checkEligibility() {
             searchYear++;
             const { data: firstOfNextYear } = await supabase
                 .from('materias')
-                .select('*')
+                .select('id, codigo, nombre:nombre_materia, año_materia, orden_secuencia')
                 .eq('año_materia', searchYear)
                 .order('orden_secuencia', { ascending: true })
                 .limit(1);

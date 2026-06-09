@@ -390,7 +390,7 @@ async function loadStudentsData(filterSubjectId = null) {
             .select(`
                 id,
                 es_confirmada,
-                materia:materias (id, nombre, codigo),
+                materia:materias (id, nombre:nombre_materia, codigo),
                 seccion:secciones (nombre)
             `)
             .eq('docente_id', context.docenteId);

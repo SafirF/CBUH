@@ -97,7 +97,7 @@ async function loadSchedules() {
                 mes,
                 carga:cargas_academicas!inner (
                     id,
-                    materia:materias (id, nombre, codigo, año_materia)
+                    materia:materias (id, nombre:nombre_materia, codigo, año_materia)
                 )
             `)
             .eq('cargas_academicas.docente_id', context.docenteId);

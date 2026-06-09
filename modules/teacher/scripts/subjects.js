@@ -20,7 +20,7 @@ async function loadSubjects() {
             .from('cargas_academicas')
             .select(`
                 id,
-                materia:materias (id, nombre, codigo, descripcion),
+                materia:materias (id, nombre:nombre_materia, codigo, descripcion),
                 seccion:secciones (id, nombre),
                 horarios (id, dia_semana, hora_inicio, hora_fin, aula)
             `)

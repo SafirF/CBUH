@@ -425,7 +425,7 @@ window.loadSubjectsForReport = async function (year) {
             .from('cargas_academicas')
             .select(`
                 id,
-                materia:materias!inner(nombre, año_materia),
+                materia:materias!inner(nombre:nombre_materia, año_materia),
                 docente:docentes(nombres, apellidos),
                 seccion:secciones(nombre, codigo),
                 periodo:periodos_academicos!inner(id, estado_id)
@@ -695,11 +695,11 @@ async function generateStudentBoletin(doc, params) {
     // Fetch all subjects for the student's current year
     const { data: yearSubjects } = await supabase
         .from('materias')
-        .select('id, nombre, codigo')
+        .select('id, nombre:nombre_materia, codigo')
         .eq('año_materia', student.año_actual)
         .eq('estado_id', 1)
         .order('orden_secuencia', { ascending: true })
-        .order('nombre', { ascending: true });
+        .order('nombre_materia', { ascending: true });
 
     // Extract section name and code from the first enrollment that has it
     const sectionEnrollment = enrollments.find(e => e.seccion_nombre);
@@ -955,7 +955,7 @@ async function generateSubjectGradesReport(doc, params) {
         .from('cargas_academicas')
         .select(`
             id,
-            materia:materias(nombre),
+            materia:materias(nombre:nombre_materia),
             docente:docentes(nombres, apellidos, cedula),
             seccion:secciones(nombre, codigo),
             periodo:periodos_academicos(nombre, codigo)
@@ -1176,7 +1176,7 @@ async function fetchStudentGrades(studentId) {
             id,
             carga:cargas_academicas(
                 materia_id,
-                materia:materias(nombre),
+                materia:materias(nombre:nombre_materia),
                 seccion:secciones(nombre, codigo)
             )
         `)
@@ -1316,7 +1316,7 @@ async function generateSubjectRosterReport(doc, params) {
         .from('cargas_academicas')
         .select(`
             id,
-            materia:materias(nombre),
+            materia:materias(nombre:nombre_materia),
             docente:docentes(nombres, apellidos),
             seccion:secciones(nombre, codigo),
             periodo:periodos_academicos(nombre)

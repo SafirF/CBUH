@@ -176,7 +176,7 @@ window.showStudentGradeDetails = async (studentId) => {
                 inscripciones (
                     id,
                     carga_academica:carga_academica_id (
-                        materia:materia_id (nombre),
+                        materia:materia_id (nombre:nombre_materia),
                         docente:docente_id (nombres, apellidos)
                     ),
                     calificaciones (

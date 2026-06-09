@@ -33,7 +33,7 @@ export async function initGrades() {
                         materia:materias!materia_id (
                             id,
                             codigo,
-                            nombre,
+                            nombre:nombre_materia,
                             año_materia,
                             creditos,
                             descripcion
@@ -345,11 +345,11 @@ async function generateBoletinFinal(doc, student) {
     // Fetch all subjects for the student's current year to show full curriculum
     const { data: yearSubjects } = await supabase
         .from('materias')
-        .select('id, nombre, codigo')
+        .select('id, nombre:nombre_materia, codigo')
         .eq('año_materia', student.año_actual)
         .eq('estado_id', 1)
         .order('orden_secuencia', { ascending: true })
-        .order('nombre', { ascending: true });
+        .order('nombre_materia', { ascending: true });
 
     // Extract section name from enrollments
     const sectionEnrollment = enrollments.find(e => e.seccion_nombre);
@@ -660,7 +660,7 @@ async function fetchStudentGrades(studentId) {
             id,
             carga:cargas_academicas(
                 materia_id,
-                materia:materias(nombre),
+                materia:materias(nombre:nombre_materia),
                 seccion:secciones(nombre, codigo)
             )
         `)

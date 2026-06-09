@@ -64,7 +64,7 @@ async function loadSections() {
             .from('secciones')
             .select(`
                 *,
-                materia:materias(id, nombre, codigo),
+                materia:materias(id, nombre:nombre_materia, codigo),
                 cargas_academicas!inner(count)
             `)
             .eq('sede_id', sedeId)
@@ -216,7 +216,7 @@ async function loadSubjectsForDropdown() {
         // Fetch subjects order by year then name
         const { data: materias, error } = await supabase
             .from('materias')
-            .select('id, nombre, codigo, año_materia')
+            .select('id, nombre:nombre_materia, codigo, año_materia')
             .eq('estado_id', 1)
             .order('año_materia', { ascending: true })
             .order('id', { ascending: true });

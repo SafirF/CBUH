@@ -104,9 +104,16 @@ async function loadSubjects() {
         const { data, error } = await supabase
             .from('materias')
             .select(`
-                *,
+                id,
+                codigo,
+                nombre:nombre_materia,
+                año_materia,
+                creditos,
+                descripcion,
+                estado_id,
+                orden_secuencia,
                 prelaciones:materias_prelaciones!materia_id (
-                    prelacion:prelacion_id (nombre, codigo)
+                    prelacion:prelacion_id (nombre:nombre_materia, codigo)
                 ),
                 cargas:cargas_academicas (
                     id,
@@ -115,7 +122,7 @@ async function loadSubjects() {
                 )
             `)
             .order('año_materia', { ascending: true })
-            .order('nombre', { ascending: true });
+            .order('nombre_materia', { ascending: true });
 
         if (error) throw error;
 
@@ -287,7 +294,7 @@ async function handleNewSubjectSubmit(e) {
     try {
         const subjectData = {
             codigo: formData.get('codigo'),
-            nombre: formData.get('nombre'),
+            nombre_materia: formData.get('nombre'),
             año_materia: formData.get('año_materia') || null,
             creditos: formData.get('creditos') || null,
             descripcion: formData.get('descripcion') || null,
@@ -378,9 +385,16 @@ window.openPrelationMatrix = async function () {
     const { data: subjects, error } = await supabase
         .from('materias')
         .select(`
-            *,
+            id,
+            codigo,
+            nombre:nombre_materia,
+            año_materia,
+            creditos,
+            descripcion,
+            estado_id,
+            orden_secuencia,
             prelaciones:materias_prelaciones!materia_id (
-                prelacion:prelacion_id (nombre, codigo)
+                prelacion:prelacion_id (nombre:nombre_materia, codigo)
             )
         `)
         .order('año_materia', { ascending: true })

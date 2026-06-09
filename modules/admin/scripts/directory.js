@@ -499,7 +499,7 @@ async function loadAcademicTab(container, data) {
                 inscripciones (
                     id,
                     carga_academica:carga_academica_id (
-                        materia:materia_id (nombre, año_materia),
+                        materia:materia_id (nombre:nombre_materia, año_materia),
                         seccion:seccion_id (nombre, codigo),
                         docente:docente_id (nombres, apellidos)
                     ),

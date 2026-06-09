@@ -228,7 +228,7 @@ async function loadCargas() {
                 sede_id,
                 materia:materias (
                     id,
-                    nombre,
+                    nombre:nombre_materia,
                     codigo,
                     año_materia
                 ),
@@ -311,7 +311,7 @@ async function loadSchedules() {
                 carga: cargas_academicas(
                     materia: materias(
                         id,
-                        nombre,
+                        nombre:nombre_materia,
                         codigo,
                         año_materia
                     ),
@@ -686,7 +686,7 @@ async function handleSaveSchedule(e) {
                         }
                     } else {
                         // BLOQUEO: Pre-requisito no programado
-                        const { data: prereqObj } = await supabase.from('materias').select('nombre').eq('id', prereqId).single();
+                        const { data: prereqObj } = await supabase.from('materias').select('nombre:nombre_materia').eq('id', prereqId).single();
                         const prereqName = prereqObj?.nombre || `ID: ${prereqId} `;
 
                         showNotification(`BLOQUEO DE PRELACIÓN: No puedes programar "${selectedCarga.materia.nombre}" porque su pre - requisito "${prereqName}" aún no ha sido asignado a un mes en el horario.`, 'error');

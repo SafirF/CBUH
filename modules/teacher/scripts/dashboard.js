@@ -313,7 +313,7 @@ async function loadDashboardData() {
                     aula,
                     carga:cargas_academicas!inner (
                         docente_id,
-                        materia:materias (nombre)
+                        materia:materias (nombre:nombre_materia)
                     )
                 `)
                 .eq('cargas_academicas.docente_id', currentProfile.docente.id)
