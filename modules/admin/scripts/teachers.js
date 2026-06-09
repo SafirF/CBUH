@@ -3,6 +3,7 @@
 // ============================================
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 
 let allTeachers = [];
 let filteredTeachers = [];
@@ -59,7 +60,7 @@ function setupEventListeners() {
 // Cargar todos los profesores
 async function loadTeachers() {
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
 
         if (!sedeId) {
             console.error('[Teachers] No sede_id found in adminContext');
@@ -714,38 +715,37 @@ async function handleNewTeacherSubmit(e) {
             throw new Error('Usuario y correo son obligatorios');
         }
 
-        // Crear usuario de Supabase Auth
+        // Crear usuario de Supabase Auth con metadatos para el trigger
+        // El trigger `on_auth_user_created` creará automáticamente el registro en `public.usuarios`
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
             password: 'profesor123', // Temporal
             options: {
                 data: {
-                    full_name: `${docenteData.nombres} ${docenteData.apellidos}`
+                    nombres: docenteData.nombres,
+                    apellidos: docenteData.apellidos,
+                    cedula: docenteData.cedula,
+                    rol_id: 3, // Docente
+                    sede_id: sedeId
                 }
             }
         });
 
         if (authError) throw authError;
 
-        // Crear registro en tabla usuarios
-        const { data: userData, error: userError } = await supabase
+        // El registro en `public.usuarios` ya fue creado automáticamente por el trigger.
+        // Consultar el perfil generado para obtener el usuario_id:
+        const { data: profileData, error: profileError } = await supabase
             .from('usuarios')
-            .insert({
-                auth_id: authData.user.id,
-                cedula: docenteData.cedula,
-                nombres: docenteData.nombres,
-                apellidos: docenteData.apellidos,
-                correo: email,
-                rol_id: 3, // Docente
-                sede_id: sedeId,
-                estado_id: 1
-            })
-            .select()
+            .select('id')
+            .eq('auth_id', authData.user.id)
             .single();
 
-        if (userError) throw userError;
+        if (profileError || !profileData) {
+            throw new Error('El perfil del usuario no fue creado correctamente por el trigger');
+        }
 
-        const usuarioId = userData.id;
+        const usuarioId = profileData.id;
 
         // Crear docente
         docenteData.usuario_id = usuarioId;
@@ -781,6 +781,7 @@ async function handleNewTeacherSubmit(e) {
         }
     }
 }
+
 
 // Función auxiliar para mostrar notificaciones
 function showNotification(message, type = 'info') {

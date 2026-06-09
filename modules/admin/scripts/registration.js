@@ -1,4 +1,5 @@
 import { supabase } from '../../../config/supabase-client.js'
+import { store } from '../../../config/app-store.js'
 
 let isInitialized = false;
 
@@ -23,7 +24,7 @@ export async function initRegistration() {
 
 async function checkRegistrationStatus() {
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
         if (!sedeId) return true; // Default open if no context
 
         const { data, error } = await supabase
@@ -165,7 +166,7 @@ function initFormSubmit(form) {
                     cedula: cedula,
                     rol_id: 3, // Estudiante
                     estado_id: 1,
-                    sede_id: window.adminContext?.sedeId
+                    sede_id: store.get().adminContext?.sedeId || window.adminContext?.sedeId
                 })
                 .select()
                 .single()
@@ -183,7 +184,7 @@ function initFormSubmit(form) {
                 direccion: formData.get('direccion'),
                 año_actual: 1, // Default for new registration
                 estado_id: 1,  // Active
-                sede_id: window.adminContext?.sedeId,
+                sede_id: store.get().adminContext?.sedeId || window.adminContext?.sedeId,
                 usuario_id: userData.id // Link to user
             }
 

@@ -1,4 +1,5 @@
 import { supabase } from '../../../config/supabase-client.js'
+import { store } from '../../../config/app-store.js'
 
 let currentPage = 1
 const itemsPerPage = 50
@@ -108,7 +109,7 @@ function setupEditModalListeners() {
 }
 
 async function loadStudents() {
-    const sedeId = window.adminContext?.sedeId
+    const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId
     if (!sedeId) return
 
     const tableBody = document.getElementById('studentsTableBody')
@@ -131,7 +132,7 @@ async function loadStudents() {
                 estados_registro!estado_id (nombre),
                 documentos_estudiantes (url_archivo, tipo_documento)
             `, { count: 'exact' })
-            .eq('sede_id', window.adminContext?.sedeId)
+            .eq('sede_id', store.get().adminContext?.sedeId || window.adminContext?.sedeId)
 
         // Apply filters
         if (currentFilter.search) {
@@ -480,7 +481,7 @@ async function loadAcademicTab(container, data) {
     `
 
     try {
-        const sedeId = window.adminContext?.sedeId
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId
 
         // 1. Fetch Sede Config
         const { data: sedeConfig, error: sedeError } = await supabase

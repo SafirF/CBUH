@@ -1,4 +1,5 @@
 import { supabase } from '../../../config/supabase-client.js'
+import { store } from '../../../config/app-store.js'
 
 let allGradesData = []
 
@@ -7,7 +8,7 @@ export function initGrades() {
     if (!gradesTableBody) return
 
     // If context isn't ready, the dashboard will call us later
-    if (window.adminContext) {
+    if (store.get().adminContext || window.adminContext) {
         loadGradesSummaries()
     }
 
@@ -19,7 +20,7 @@ export function initGrades() {
 }
 
 async function loadGradesSummaries() {
-    const sedeId = window.adminContext?.sedeId
+    const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId
     if (!sedeId) {
         console.error('Contexto de sede no encontrado')
         return

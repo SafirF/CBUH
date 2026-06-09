@@ -688,59 +688,26 @@ async function fetchStudentGrades(studentId) {
 
 async function calculateStudentStats(studentId, year) {
     try {
-        // A. Local Average
-        const enrollments = await fetchStudentGrades(studentId);
-        const gradedSubjects = enrollments.filter(e => e.nota_final && !isNaN(e.nota_final));
+        // Consultar la vista de rendimiento que calcula promedios y ranking server-side
+        const { data, error } = await supabase
+            .from('vista_rendimiento_estudiantes')
+            .select('promedio_general, posicion_ranking')
+            .eq('estudiante_id', studentId)
+            .single();
 
-        let average = 0;
-        if (gradedSubjects.length > 0) {
-            const sum = gradedSubjects.reduce((acc, curr) => acc + Number(curr.nota_final), 0);
-            average = (sum / gradedSubjects.length).toFixed(1);
+        if (error || !data) {
+            console.warn('Error fetching computed view stats:', error);
+            return { average: '0.0', rank: '-' };
         }
 
-        // B. Rank (Heavy)
-        // Check 100 students limit optimization
-        const { data: classmates } = await supabase
-            .from('estudiantes')
-            .select('id')
-            .eq('año_actual', year)
-            .eq('estado_id', 1);
-
-        let rank = '-';
-
-        if (classmates && classmates.length > 0) {
-            const classmateIds = classmates.map(c => c.id);
-            const { data: allGrades } = await supabase
-                .from('calificaciones')
-                .select('nota_final, inscripciones!inner(estudiante_id)')
-                .in('inscripciones.estudiante_id', classmateIds);
-
-            if (allGrades) {
-                const studentAverages = {};
-                allGrades.forEach(g => {
-                    const sid = g.inscripciones.estudiante_id;
-                    if (!studentAverages[sid]) studentAverages[sid] = [];
-                    studentAverages[sid].push(Number(g.nota_final));
-                });
-
-                const averagesArray = Object.keys(studentAverages).map(sid => {
-                    const notes = studentAverages[sid];
-                    const avg = notes.reduce((a, b) => a + b, 0) / notes.length;
-                    return { sid: parseInt(sid), avg };
-                });
-
-                averagesArray.sort((a, b) => b.avg - a.avg);
-                const myRankIndex = averagesArray.findIndex(x => x.sid === studentId);
-                if (myRankIndex !== -1) {
-                    rank = myRankIndex + 1;
-                }
-            }
-        }
-
-        return { average, rank };
-
+        return { 
+            average: data.promedio_general.toFixed(1), 
+            rank: data.posicion_ranking 
+        };
     } catch (e) {
-        return { average: '0', rank: '-' };
+        console.warn('Error fetching computed view stats:', e);
+        return { average: '0.0', rank: '-' };
     }
 }
+
 

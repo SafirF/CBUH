@@ -1,5 +1,6 @@
 import '../../../assets/css/tailwind.css'
 import { supabase } from '../../../config/supabase-client.js'
+import { store } from '../../../config/app-store.js'
 import { timeAgo } from '../../../shared/scripts/utils.js'
 import { initDirectory } from './directory.js'
 import { initRegistration } from './registration.js'
@@ -41,7 +42,15 @@ async function init() {
 
         currentProfile = profile
 
-        // Expose admin context globally for other modules
+        // Expose admin context via centralized store
+        store.set({
+            adminContext: {
+                sedeId: profile.sede_id,
+                roleId: profile.rol_id
+            }
+        })
+
+        // Backward compatibility: mantener window.adminContext durante la migración
         window.adminContext = {
             sedeId: profile.sede_id,
             roleId: profile.rol_id

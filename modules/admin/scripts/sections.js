@@ -1,5 +1,6 @@
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 
 let allSections = [];
 let isInitialized = false;
@@ -53,7 +54,7 @@ function setupEventListeners() {
 
 async function loadSections() {
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
         const grid = document.getElementById('sections-grid');
 
         if (grid) {
@@ -144,7 +145,7 @@ async function handleSaveSection(e) {
     try {
         const formData = new FormData(e.target);
         const id = document.getElementById('section-id').value;
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
 
         const sectionData = {
             nombre: formData.get('nombre').toUpperCase(),

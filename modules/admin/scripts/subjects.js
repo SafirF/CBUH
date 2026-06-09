@@ -3,6 +3,7 @@
 // ============================================
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 
 let allSubjects = [];
 let filteredSubjects = [];
@@ -182,7 +183,7 @@ function renderSubjects() {
     grid.innerHTML = filteredSubjects.map(subject => {
         // Check teacher assignment (any active load)
         // Check teacher assignment (any active load FOR CURRENT SEDE)
-        const currentSedeId = window.adminContext?.sedeId;
+        const currentSedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
         const activeCargas = subject.cargas ? subject.cargas.filter(c => c.sede_id === currentSedeId && c.docente) : [];
         const activeCarga = activeCargas.length > 0 ? activeCargas[0] : null;
 

@@ -1,5 +1,6 @@
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -19,7 +20,7 @@ export async function initReports() {
 
     // Pre-fetch Report Configs
     try {
-        const sedeId = window.adminContext?.sedeId || window.teacherContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId || window.teacherContext?.sedeId;
         if (sedeId) {
             const { data: configs } = await supabase
                 .from('configuraciones')
@@ -1202,82 +1203,28 @@ async function fetchStudentGrades(studentId) {
 
 async function calculateStudentStats(studentId, year) {
     try {
-        // 1. Get all students field average in the same year
-        // Since we don't have a direct 'average' column, we might need to rely on a simpler rank 
-        // or fetch grades for everyone. Fetching grades for everyone is expensive.
-        // Option B: Just calculate THIS student's average locally.
+        // Consultar la vista de rendimiento que calcula promedios y ranking server-side
+        const { data, error } = await supabase
+            .from('vista_rendimiento_estudiantes')
+            .select('promedio_general, posicion_ranking')
+            .eq('estudiante_id', studentId)
+            .single();
 
-        // A. Local Average
-        const enrollments = await fetchStudentGrades(studentId);
-        const gradedSubjects = enrollments.filter(e => e.nota_final && !isNaN(e.nota_final));
-
-        let average = 0;
-        if (gradedSubjects.length > 0) {
-            const sum = gradedSubjects.reduce((acc, curr) => acc + Number(curr.nota_final), 0);
-            average = (sum / gradedSubjects.length).toFixed(1); // 1 decimal place
+        if (error || !data) {
+            console.warn('Error fetching computed view stats:', error);
+            return { average: '0.0', rank: '-' };
         }
 
-        // B. Rank (Approximate or Placeholder for safety if too heavy)
-        // To do this fast, we need a View. Doing it client side for 100 students is okay.
-        // Let's try fetching all students of 'año_actual'
-        const { data: classmates } = await supabase
-            .from('estudiantes')
-            .select('id')
-            .eq('año_actual', year)
-            .eq('estado_id', 1); // Active
-
-        let rank = '-';
-
-        if (classmates && classmates.length > 0) {
-            // We need to know who has better grades. 
-            // If we can't query averages, we can't rank efficiently.
-            // WORKAROUND: For now, we return '-' or implement a heavy fetch if permitted.
-            // Let's try a smarter, lighter query: Get all grades for these students? No.
-            // Let's stick to returning Average and a placeholder for rank if we can't do it easily.
-            // But user ASKED for it.
-            // Let's attempt to fetch grades for classmates.
-            const classmateIds = classmates.map(c => c.id);
-
-            // This query fetches ALL grades for ALL students in that year. Heavy? Maybe.
-            // Let's limit to active year?
-            const { data: allGrades } = await supabase
-                .from('calificaciones')
-                .select('nota_final, inscripciones!inner(estudiante_id)')
-                .in('inscripciones.estudiante_id', classmateIds);
-
-            if (allGrades) {
-                // Group by student
-                const studentAverages = {};
-                allGrades.forEach(g => {
-                    const sid = g.inscripciones.estudiante_id;
-                    if (!studentAverages[sid]) studentAverages[sid] = [];
-                    studentAverages[sid].push(Number(g.nota_final));
-                });
-
-                const averagesArray = Object.keys(studentAverages).map(sid => {
-                    const notes = studentAverages[sid];
-                    const avg = notes.reduce((a, b) => a + b, 0) / notes.length;
-                    return { sid: parseInt(sid), avg };
-                });
-
-                // Sort descending
-                averagesArray.sort((a, b) => b.avg - a.avg);
-
-                // Find index
-                const myRankIndex = averagesArray.findIndex(x => x.sid === studentId);
-                if (myRankIndex !== -1) {
-                    rank = myRankIndex + 1;
-                }
-            }
-        }
-
-        return { average, rank };
-
+        return { 
+            average: data.promedio_general.toFixed(1), 
+            rank: data.posicion_ranking 
+        };
     } catch (e) {
-        console.warn('Stats calculation error', e);
-        return { average: '0', rank: '-' };
+        console.warn('Error fetching computed view stats:', e);
+        return { average: '0.0', rank: '-' };
     }
 }
+
 
 
 function getBasePDF() {

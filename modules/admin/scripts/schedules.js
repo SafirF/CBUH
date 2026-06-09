@@ -3,6 +3,7 @@
 // ============================================
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -47,7 +48,7 @@ export async function initSchedules() {
 
 async function checkScheduleConfig() {
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
         if (!sedeId) return true;
 
         const { data } = await supabase
@@ -65,7 +66,7 @@ async function checkScheduleConfig() {
 // Cargar configuración de tiempos desde Supabase
 async function loadTimeConfig() {
     try {
-        const sedeId = window.adminContext?.sedeId || 1;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId || 1;
         const { data } = await supabase
             .from('configuraciones')
             .select('clave, valor')
@@ -242,7 +243,7 @@ async function loadCargas() {
                     apellidos
                 )
             `)
-            .eq('sede_id', window.adminContext?.sedeId);
+            .eq('sede_id', store.get().adminContext?.sedeId || window.adminContext?.sedeId);
 
         if (error) throw error;
 
@@ -326,7 +327,7 @@ async function loadSchedules() {
                     )
                 )
             `)
-            .eq('sede_id', window.adminContext?.sedeId);
+            .eq('sede_id', store.get().adminContext?.sedeId || window.adminContext?.sedeId);
 
         if (error) throw error;
 
@@ -761,7 +762,7 @@ async function handlePrintSchedule() {
     }
 
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
 
         // Fetch Configs
         const { data: configs } = await supabase

@@ -1,5 +1,6 @@
 
 import { supabase } from '../../../config/supabase-client.js';
+import { store } from '../../../config/app-store.js';
 
 let isInitialized = false;
 let currentAdminId = null;
@@ -20,7 +21,7 @@ export async function initSettings() {
 
 async function loadSettings() {
     try {
-        const sedeId = window.adminContext?.sedeId;
+        const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
         if (!sedeId) console.warn('[Settings] No Sede ID found in context.');
 
         // 1. Load Configurations (Sede Info & Toggles)
@@ -339,7 +340,7 @@ function setupToggleListener(elementId, dbKey) {
 }
 
 async function saveSetting(key, value) {
-    const sedeId = window.adminContext?.sedeId;
+    const sedeId = store.get().adminContext?.sedeId || window.adminContext?.sedeId;
     if (!sedeId) return;
 
     try {
